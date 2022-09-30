@@ -1,10 +1,15 @@
 {
+  "scripts": {
+    "upload": "node index.js"
+  },
   "dependencies": {
     "@bundlr-network/client": "^0.8.8",
     "arweave": "^1.11.6",
+    "prompt-sync": "^4.2.0",
     "wikijs": "^6.3.3"
   },
   "devDependencies": {
-    "@types/node": "^18.7.23"
+    "@types/node": "^18.7.23",
+    "open": "^8.4.0"
   }
 }

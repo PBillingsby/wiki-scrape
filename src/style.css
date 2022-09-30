@@ -1,4 +1,5 @@
-/*XOWA:MediaWiki:Common.css*/
+XOWA:MediaWiki:Common.css
+
 /* Reset italic styling set by user agent */
 cite,
 dfn {
@@ -1789,7 +1790,7 @@ div.flaggedrevs_short {
         background: #fff;
         color: #000;
         margin: 0;
-        padding: 0
+        padding: 1rem;
     }
 
     a {
