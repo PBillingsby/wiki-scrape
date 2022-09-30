@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@bundlr-network/client": "^0.8.8",
+    "arweave": "^1.11.6",
+    "wikijs": "^6.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.23"
+  }
+}
