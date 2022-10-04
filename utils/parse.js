@@ -6,18 +6,17 @@ import { map } from 'unist-util-map'
 export const parseHTML = (content) => {
   const tree = fromHtml(content)
   const newTree = map(tree, node => {
-    if (node.type === 'element' && node.tagName === 'a') {
+    if (node.type === 'element' && ['a', 'img'].includes(node.tagName)) {
       if (node?.properties?.href && node?.properties?.href.match("\^/wiki{0,}")) {
-        // node?.properties?.href = "https://wikipedia.org" + node?.properties.href;
+        node.properties.href = "https://wikipedia.org" + node.properties.href;
       }
-      return node
     }
-    if (node.type === 'element' && node.tagName === 'img') {
-      if (node?.properties?.href && node?.properties?.href.match("\^/wiki{0,}")) {
-        // node?.properties?.href = "https://wikipedia.org" + node?.properties.href;
-      }
-      return node
-    }
+    // if (node.type === 'element' && node.tagName === 'img') {
+    //   if (node?.properties?.href && node?.properties?.href.match("\^/wiki{0,}")) {
+    //     // node?.properties?.href = "https://wikipedia.org" + node?.properties.href;
+    //   }
+    //   return node
+    // }
     return node
   })
 
