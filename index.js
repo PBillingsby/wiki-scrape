@@ -3,7 +3,7 @@ import wiki from 'wikijs';
 import Bundlr from '@bundlr-network/client';
 const jwk = JSON.parse(fs.readFileSync("wallet.json").toString());
 import open from 'open';
-// import { parseHTML } from './utils/parse.js'
+import { parseHTML } from './utils/parse.js'
 
 const CLEANUP = ['src-id.txt', 'src-manifest.csv', 'src-manifest.json'];
 
@@ -29,7 +29,7 @@ const scrapePage = async (query) => {
       { name: "Content-Type", value: "text/html" }
     ];
 
-    const html = await content.html();
+    const html = parseHTML(await content.html());
 
     let page = `<link rel="stylesheet" href="https://arweave.net/ppG7r_LcsbQqyKaXUJp-VyNTStJciSibhxfRT73hT2I">` + html
 
@@ -42,13 +42,13 @@ const scrapePage = async (query) => {
 }
 
 const createTransaction = async (page, tags) => {
-  const bundlr = new Bundlr.default("http://node1.bundlr.network", "arweave", jwk);
+  const bundlr = new Bundlr.default("http://node2.bundlr.network", "arweave", jwk);
   const tx = bundlr.createTransaction(page, { tags: tags })
-  console.log(tx.id)
-  await tx.sign();
-  await tx.upload();
 
-  await open(`https://arweave.net/${tx.id}`)
+  await tx.sign();
+
+  const res = await tx.upload();
+  await open(`https://arweave.net/${res.data.id}`)
 
   if (tx) {
     CLEANUP.forEach(file => {
