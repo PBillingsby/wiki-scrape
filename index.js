@@ -31,8 +31,8 @@ const scrapePage = async (query) => {
 
     const html = parseHTML(await content.html());
 
-    let page = `<link rel="stylesheet" href="https://arweave.net/ppG7r_LcsbQqyKaXUJp-VyNTStJciSibhxfRT73hT2I">` + html
-
+    // don't need this any more
+    //let page = `<link rel="stylesheet" href="https://arweave.net/ppG7r_LcsbQqyKaXUJp-VyNTStJciSibhxfRT73hT2I">` + html
     createTransaction(page, tags)
     // close the program
   }
