@@ -1,56 +1,76 @@
-const fs = require('fs');
-const wiki = require('wikijs').default;
-const Bundlr = require('@bundlr-network/client');
+import fs from 'fs';
+import wiki from 'wikijs';
+import Bundlr from '@bundlr-network/client';
 const jwk = JSON.parse(fs.readFileSync("wallet.json").toString());
-const open = require('open')
-const prompt = require("prompt-sync")({ sigint: true });
+import open from 'open';
+import { parseHTML } from './utils/parse.js'
 
-const cleaup = ['src-id.txt', 'src-manifest.csv', 'src-manifest.json', 'src/index.html'];
+// const query = {
+//   query: `
+//   query {
+//     transactions(
+//         tags: {
+//             name: "Application",
+//             values: ["WikipediaArchiveTest"]
+//         }
+//     ) {
+//         edges {
+//             node {
+//                 id
+//                 tags {
+//                     name
+//                     value
+//                 }
+//             }
+//         }
+//     }
+//   }`
+// }
+
+const CLEANUP = ['src-id.txt', 'src-manifest.csv', 'src-manifest.json'];
+
+const getPage = async (query) => {
+  let content
+
+  await wiki.default({ apiUrl: 'https://wikipedia.org/w/api.php' })
+    .page(query)
+    .then(page => page)
+    .then(obj => content = obj)
+
+  return content
+}
 
 const scrapePage = async (query) => {
-  let content
   try {
-    await wiki({ apiUrl: 'https://wikipedia.org/w/api.php' })
-      .page(query)
-      .then(page => page)
-      .then(obj => content = obj)
+    const content = await getPage(query)
 
-    const confirm = prompt(`Do you wish to upload the following? Y/N \n ${content.fullurl} \n`);
+    const tags = [
+      { name: "Application", value: "WikipediaArchiveTest" },
+      { name: "Page-ID", value: `${content.pageid ?? "unknown"}` },
+      { name: "Page-Title", value: content.title },
+      { name: "Content-Type", value: "text/html" }
+    ];
 
-    if (confirm.toLowerCase() === "y") {
-      const page = `<link rel="stylesheet" href="style.css"> ` + await content.html()
-
-      const tags = [
-        { name: "Application", value: "ArWiki" },
-        { name: "Page-ID", value: `${content.pageid ?? "unknown"}` },
-        { name: "Content-Type", value: "application/json" }
-      ];
-
-      page.replaceAll(`href="/wiki/`, `href="wikipedia.org/wiki/"`)
-
-      fs.writeFile('./src/index.html', page, err => {
-        if (err) {
-          console.error(err);
-        }
-        // file written successfully
-      });
-      console.log(content)
-      createTransaction(tags)
-    }
+    const html = parseHTML(await content.html(), content.title);
+    console.log(html)
+    // createTransaction(page, tags)
   }
   catch (err) {
     console.error(err)
   }
 }
 
-const createTransaction = async (tags) => {
-  const bundlr = new Bundlr.default("http://node1.bundlr.network", "arweave", jwk);
-  const tx = await bundlr.uploader.uploadFolder("./src", "index.html", { tags });
+const createTransaction = async (page, tags) => {
+  const bundlr = new Bundlr.default("http://node2.bundlr.network", "arweave", jwk);
+  const tx = bundlr.createTransaction(page, { tags: tags })
 
-  await open(`https://arweave.net/${tx}`)
+  await tx.sign();
+
+  const res = await tx.upload();
+  await open(`https://arweave.net/${res.data.id}`)
 
   if (tx) {
-    cleaup.forEach(file => {
+    CLEANUP.forEach(file => {
       fs.unlink(file, function (err) {
         if (err) throw err;
       })
