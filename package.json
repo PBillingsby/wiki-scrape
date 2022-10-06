@@ -6,6 +6,7 @@
   "dependencies": {
     "@bundlr-network/client": "^0.8.8",
     "arweave": "^1.11.6",
+    "hastscript": "^7.0.2",
     "wikijs": "^6.3.3"
   },
   "devDependencies": {
