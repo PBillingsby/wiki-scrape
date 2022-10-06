@@ -45,15 +45,15 @@ const scrapePage = async (query) => {
     const content = await getPage(query)
 
     const tags = [
-      { name: "Application", value: "WikipediaArchiveTest" },
+      { name: "Application", value: "WikiTestArchiver1" },
       { name: "Page-ID", value: `${content.pageid ?? "unknown"}` },
       { name: "Page-Title", value: content.title },
       { name: "Content-Type", value: "text/html" }
     ];
 
     const html = parseHTML(await content.html(), content.title);
-    console.log(html)
-    // createTransaction(page, tags)
+
+    createTransaction(html, tags)
   }
   catch (err) {
     console.error(err)
