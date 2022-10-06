@@ -5,6 +5,28 @@ const jwk = JSON.parse(fs.readFileSync("wallet.json").toString());
 import open from 'open';
 import { parseHTML } from './utils/parse.js'
 
+// const query = {
+//   query: `
+//   query {
+//     transactions(
+//         tags: {
+//             name: "Application",
+//             values: ["WikipediaArchiveTest"]
+//         }
+//     ) {
+//         edges {
+//             node {
+//                 id
+//                 tags {
+//                     name
+//                     value
+//                 }
+//             }
+//         }
+//     }
+//   }`
+// }
+
 const CLEANUP = ['src-id.txt', 'src-manifest.csv', 'src-manifest.json'];
 
 const getPage = async (query) => {
@@ -29,12 +51,9 @@ const scrapePage = async (query) => {
       { name: "Content-Type", value: "text/html" }
     ];
 
-    const html = parseHTML(await content.html());
-
-    // don't need this any more
-    //let page = `<link rel="stylesheet" href="https://arweave.net/ppG7r_LcsbQqyKaXUJp-VyNTStJciSibhxfRT73hT2I">` + html
-    createTransaction(page, tags)
-    // close the program
+    const html = parseHTML(await content.html(), content.title);
+    console.log(html)
+    // createTransaction(page, tags)
   }
   catch (err) {
     console.error(err)
