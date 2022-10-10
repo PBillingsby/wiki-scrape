@@ -9,7 +9,7 @@ export const parseHTML = (content, title) => {
     if (node.type === 'element' && node.tagName === 'head') {
       node.children =
         [
-          h('link', { rel: 'stylesheet', href: 'https://arweave.net/ppG7r_LcsbQqyKaXUJp-VyNTStJciSibhxfRT73hT2I' }),
+          h('link', { rel: 'stylesheet', href: 'https://arweave.net/zeD-oNKfwNXE4k4-QeCAR3UZIfLXA7ettyi8qGZqd7g' }),
           h('title', title),
           h('meta', { charset: 'UTF-8' }),
           h('meta', { name: "description", content: `${title} Permaweb Page` })
