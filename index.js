@@ -18,35 +18,16 @@ const getPage = async (query) => {
 }
 
 const scrapePage = async (query) => {
-  let remove = false
   try {
     const content = await getPage(query)
     const html = parseHTML(await content.html(), content.title);
-    const links = await content.links();
-    if (!remove) {
-      fs.writeFileSync('links.txt', JSON.stringify(links))
-    }
+
+
     prepareNft(html, content)
   }
   catch (err) {
     console.error(err)
   }
-
-  if (fs.readFileSync('links.txt') && !remove) {
-    const linksArr = JSON.parse(fs.readFileSync('links.txt'))
-    linksArr.slice(linksArr.length - 10).map(link => {
-      console.log(link)
-      setTimeout(() => {
-        try {
-          scrapePage(link.toString())
-        } catch (err) {
-          console.log("NOW THIS OEOREREOROOEROEOR", err)
-        }
-      })
-    }, 200000)
-    fs.unlinkSync('links.txt');
-  }
-  remove = true;
 }
 
 const prepareNft = async (page, content) => {
@@ -58,7 +39,7 @@ const prepareNft = async (page, content) => {
     { name: "Content-Type", value: "text/html" }
   ];
   const tx = bundlr.createTransaction(page, { tags: tags })
-  console.log(content.title)
+
   try {
     await tx.sign();
     const res = await tx.upload();
