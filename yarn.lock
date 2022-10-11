@@ -3398,7 +3398,7 @@ vm2@3.9.9:
     acorn "^8.7.0"
     acorn-walk "^8.2.0"
 
-warp-contracts@^1.1.5:
+warp-contracts@^1.1.5, warp-contracts@^1.2.13:
   version "1.2.13"
   resolved "https://registry.yarnpkg.com/warp-contracts/-/warp-contracts-1.2.13.tgz#653841d2bbf7d50d80bd2557f8e1d9f7648ea2f7"
   integrity sha512-qSlkxb4N+5oFKUWqPDfIA5ZqsEJRyjJtmeFadI6yMgSm+HLvREDdGl3RrmBOdNAEC+ROvKv7ii4sWq0/fxrV5Q==

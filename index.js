@@ -1,9 +1,10 @@
 import fs from 'fs';
 import wiki from 'wikijs';
 import Bundlr from '@bundlr-network/client';
-const jwk = JSON.parse(fs.readFileSync("wallet.json").toString());
+import { WarpFactory } from 'warp-contracts'
 import open from 'open';
 import { parseHTML } from './utils/parse.js'
+const jwk = JSON.parse(fs.readFileSync("wallet.json").toString());
 
 const getPage = async (query) => {
   let content
@@ -17,19 +18,39 @@ const getPage = async (query) => {
 }
 
 const scrapePage = async (query) => {
+  let remove = false
   try {
     const content = await getPage(query)
     const html = parseHTML(await content.html(), content.title);
-
+    const links = await content.links();
+    if (!remove) {
+      fs.writeFileSync('links.txt', JSON.stringify(links))
+    }
     prepareNft(html, content)
   }
   catch (err) {
     console.error(err)
   }
+
+  if (fs.readFileSync('links.txt') && !remove) {
+    const linksArr = JSON.parse(fs.readFileSync('links.txt'))
+    linksArr.slice(linksArr.length - 10).map(link => {
+      console.log(link)
+      setTimeout(() => {
+        try {
+          scrapePage(link.toString())
+        } catch (err) {
+          console.log("NOW THIS OEOREREOROOEROEOR", err)
+        }
+      })
+    }, 200000)
+    fs.unlinkSync('links.txt');
+  }
+  remove = true;
 }
 
 const prepareNft = async (page, content) => {
-  const bundlr = new Bundlr.default("http://node2.bundlr.network", "arweave", jwk);
+  const bundlr = new Bundlr.default("http://node1.bundlr.network", "arweave", jwk);
   const tags = [
     { name: "Application", value: "WikiTestArchiver1" },
     { name: "Page-ID", value: `${content.pageid ?? "unknown"}` },
@@ -37,29 +58,22 @@ const prepareNft = async (page, content) => {
     { name: "Content-Type", value: "text/html" }
   ];
   const tx = bundlr.createTransaction(page, { tags: tags })
+  console.log(content.title)
   try {
-    // await tx.sign();
-    // const res = await tx.upload();
+    await tx.sign();
+    const res = await tx.upload();
 
-    createNFT(tx.id, content);
-    // await open(`https://arweave.net/${res.data.id}`)
-
-    // if (tx) {
-    //   fs.unlink('src/index.html', function (err) {
-    //     if (err) throw err;
-    //   })
-    // }
+    createNFT(res.data.id, content);
   } catch (err) {
     console.log(err.message)
   }
 }
 
-const createNFT = async (tags, content) => {
-  console.log(content)
+const createNFT = async (id, content) => {
   const initState = {
     "title": `${content.title} Artefact`,
     "name": `Artefact #${content.pageid}`,
-    "description": `Minted from archiving pool PLACEHOLDER`,
+    "description": `Minted from archiving pool yxq8iG5KJYsgVaIzZU8c1JvKmuCFFayexREmGax2h6c`,
     "ticker": "KOINFT",
     "balances": {},
     // "owner": tokenHolder,
@@ -71,32 +85,40 @@ const createNFT = async (tags, content) => {
     "createdAt": new Date().getTime()
   }
 
-  // console.log(tags);
-  // console.log(initState);
+  let tags = [
+    { name: "Application", value: "WikipediaScraperTest1" },
+    { name: "Page-Id", value: `${content.pageid ?? "unknown"}` },
+    { name: "Page-Title", value: content.title },
+    { name: "Type", value: "manifest" }
+  ];
+
+  tags.push({ name: "Action", value: "marketplace/Create" });
+  tags.push({ name: "Network", value: "Koi" });
+  tags.push({ name: "Artefact-Series", value: "Wikipedia Pool" })
+  tags.push({ name: "Pool-Id", value: "yxq8iG5KJYsgVaIzZU8c1JvKmuCFFayexREmGax2h6c" })
+
+  const warp = WarpFactory.forMainnet();
 
   // NFT CONTRACT ID: Qa7IR-xvPkBtcYUBZXd8z-Tu611VeJH33uEA5XiFUNA
 
-  // MANIFEST const manifest = {
-  //   manifest: "arweave/paths",
-  //   version: "0.1.0",
-  //   index: {},
-  //   paths: {}
-  // }
+  const manifest = {
+    manifest: "arweave/paths",
+    version: "0.1.0",
+    index: { path: "index.html" },
+    paths: { "index.html": { id: id } }
+  }
 
-  // returns tx id
-  // create contract with path manifest (router document pointing to tx id)
-  // returned contract id
+  const tx = await warp.createContract.deployFromSourceTx({
+    srcTxId: "gj8YXEbmONb_-q4bX28AhcO4POT39JwhLKez-YKV89k",
+    wallet: jwk,
+    initState: JSON.stringify(initState),
+    data: { "Content-Type": "application/x.arweave-manifest+json", body: JSON.stringify(manifest) },
+    tags
+  }, true)
 
-  //manifest.paths["index.html"] = { id: TX ID }
-  // manifest.index = { path: "index.html" }
+  console.log(tx)
+  await open(`https://arweave.net/${id}`)
 
-  // const tx = await warp.createContract.deployFromSourceTx({
-  //   srcTxId: NFTContractID,
-  //   wallet,
-  //   initState: JSON.stringify(initialState),
-  //   data: { "Content-Type": "application/x.arweave-manifest+json", body: JSON.stringify(manifest) },
-  //   tags
-  // })
 }
 
 scrapePage(process.argv[2])
